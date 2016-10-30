@@ -2,21 +2,21 @@
 // This code will display "Hello World!" on top and bottom line of your LCD
 
 #include <at89c51cc03.h>
+#include <stdio.h>
 
 // Define RS pin that will be used to toggle P1_7 between command/data
 
 #define RS 0x80
 
-// Because delay functions are overrated. Real engineers code custom shit amirite?
+// This is the delay function, will wait for 1ms*t
 
-void wait(unsigned int t)  {          /* wait function, 1ms delay made with trial and error */
+void wait(unsigned int t)  {          /* wait function */
    unsigned int c = 1, d = 1;
+ 
    for ( c = 1 ; c <= t ; c++ )
        for ( d = 1 ; d <= 124 ; d++ )
        {}                                 
 }
-
-// The board has two pins for disable/enable of LCD, the two functions below are for QoL
 
 void enable_high(void)  {
 	P3_4 = 1;
@@ -28,11 +28,8 @@ void enable_low(void)  {
 	P3_2 = 0;
 }
 
-// To send stuff to the LCD: Disable LCD > Send first nibble > Enable LCD > Wait about 2 ms ? Disable LCD > Repeat for the second nibble
-
-// Send command to the LCD i.e. disable blink, return cursor to start etc.
-
-void lcd_cmd(char cmd)  { 
+void lcd_cmd(char cmd)
+{ 
 	enable_low();	
 	P1 = ((cmd >> 4) & 0x0F);
 	enable_high();
@@ -44,9 +41,8 @@ void lcd_cmd(char cmd)  {
 	enable_low();	
 }
 
-// Send the actual letters in HEX format
-
-void lcd_com(unsigned char dat)  {
+void lcd_com(unsigned char dat)
+{
 	enable_low();
 	P1 = ((dat >> 4) & 0x0F)|RS;
 	enable_high();
@@ -58,9 +54,8 @@ void lcd_com(unsigned char dat)  {
 	enable_low();
 }
 
-// This uses above functions to initialise the LCD and send stock msg
-
-void lcd_init(void) {
+void lcd_init(void)
+{
 	lcd_cmd(0x28);       // 4-bit mode - 2 line - 5x7 font. 
 	lcd_cmd(0x0C);       // Display no cursor - no blink.
 	lcd_cmd(0x06);       // Automatic Increment - No Display shift.
@@ -78,28 +73,29 @@ void line_two(void)  {
 	lcd_cmd(0xC0); 
 }
 
+
 void send_hello(void)  {
-		lcd_com(0x54);
+		lcd_com(0x48);
 		lcd_com(0x65);
-		lcd_com(0x65);
-		lcd_com(0x6d);
+		lcd_com(0x6c);
+		lcd_com(0x6c);
 		lcd_com(0x6f);
 }
 
 void send_world(void)  {
-		lcd_com(0x47);
-		lcd_com(0x65);
-		lcd_com(0x74);
-		lcd_com(0x20);
+		lcd_com(0x57);
+		lcd_com(0x6F);
 		lcd_com(0x72);
-		lcd_com(0x65);
-		lcd_com(0x6b);
-		lcd_com(0x74);
+		lcd_com(0x6c);
+		lcd_com(0x64);
 }
 
-void main()  {
+void main()
+{
+	lcd_init();
+	while(1){
 	  line_one();
-   	send_hello();
+		send_hello();
 		line_two();
 		send_world();
 		wait(2000);
@@ -110,4 +106,6 @@ void main()  {
 		send_hello();
 		wait(2000);	
 		clear_screen();
+	}
 }
+
